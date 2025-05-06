@@ -130,9 +130,7 @@ def convert_pdf(pdf_name, output_path) -> dict[str, Any]:
     返回:
         dict[str, Any]: 包含输出目录相对路径的字典。
     """
-    src_root = Path("/root/huanbao")
-    dest_root = Path("/root/data/huanbao")
-    return convert_pdf_to_images(src_root / pdf_name, dest_root / output_path)
+    return convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path)
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')
