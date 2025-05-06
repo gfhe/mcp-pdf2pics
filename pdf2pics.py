@@ -67,6 +67,7 @@ def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path]) -
     """
     doc = fitz.open(pdf)
     output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     image_paths = []
     
     # 提升分辨率参数（原2倍提升改为4倍）
