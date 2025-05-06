@@ -1,0 +1,33 @@
+2025-05-06 22:32:15 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:32:15 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:33:52 | INFO | Found 2 PDF files in .: [WindowsPath('pdf_source/aa.pdf'), WindowsPath('pdf_source/x.pdf')]
+2025-05-06 22:33:52 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:33:52 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:35:34 | INFO | Found 2 PDF files in .: [WindowsPath('pdf_source/aa.pdf'), WindowsPath('pdf_source/x.pdf')]
+2025-05-06 22:35:34 | INFO | Converting pdf_source\aa.pdf(path:pdf_source\pdf_source\aa.pdf) to converted_images\qwe\aa
+2025-05-06 22:35:34 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:41:13 | INFO | Found 2 PDF files in .: [WindowsPath('pdf_source/aa.pdf'), WindowsPath('pdf_source/x.pdf')]
+2025-05-06 22:41:13 | INFO | Converting pdf_source\aa.pdf(path:pdf_source\pdf_source\aa.pdf) to converted_images\test\aa
+2025-05-06 22:41:13 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:41:28 | INFO | Found 2 PDF files in .: [WindowsPath('pdf_source/aa.pdf'), WindowsPath('pdf_source/x.pdf')]
+2025-05-06 22:41:28 | INFO | Converting pdf_source\aa.pdf(path:pdf_source\pdf_source\aa.pdf) to converted_images\test\aa
+2025-05-06 22:41:28 | ERROR | Conversion failed: no such file: 'pdf_source\pdf_source\aa.pdf'
+2025-05-06 22:44:30 | INFO | Found 2 PDF files in pdf_source\z: [WindowsPath('pdf_source/z/aa.pdf'), WindowsPath('pdf_source/z/x.pdf')]
+2025-05-06 22:44:30 | INFO | Converting pdf_source\z\aa.pdf(path:pdf_source\z\aa.pdf) to converted_images\test\aa
+2025-05-06 22:44:37 | INFO | Converting pdf_source\z\x.pdf(path:pdf_source\z\x.pdf) to converted_images\test\x
+2025-05-06 22:44:50 | INFO | Found 2 PDF files in pdf_source: [WindowsPath('pdf_source/z/aa.pdf'), WindowsPath('pdf_source/z/x.pdf')]
+2025-05-06 22:44:50 | INFO | Converting pdf_source\z\aa.pdf(path:pdf_source\z\aa.pdf) to converted_images\test\aa
+2025-05-06 22:44:57 | INFO | Converting pdf_source\z\x.pdf(path:pdf_source\z\x.pdf) to converted_images\test\x
+2025-05-06 22:45:34 | INFO | Found 2 PDF files in pdf_source: [WindowsPath('pdf_source/z/aa.pdf'), WindowsPath('pdf_source/z/x.pdf')]
+2025-05-06 22:45:34 | INFO | Converting pdf_source\z\aa.pdf(path:pdf_source\z\aa.pdf) to converted_images\hhh\aa
+2025-05-06 22:45:43 | INFO | Converting pdf_source\z\x.pdf(path:pdf_source\z\x.pdf) to converted_images\hhh\x
+2025-05-06 22:48:19 | INFO | Found 2 PDF files in pdf_source: [WindowsPath('pdf_source/z/aa.pdf'), WindowsPath('pdf_source/z/x.pdf')]
+2025-05-06 22:48:19 | INFO | Converting pdf_source\z\aa.pdf(path:pdf_source\z\aa.pdf) to converted_images\iii\aa
+2025-05-06 22:48:19 | INFO | Converting pdf_source\z\aa.pdf to converted_images\iii\aa
+2025-05-06 22:48:28 | INFO | Converting pdf_source\z\x.pdf(path:pdf_source\z\x.pdf) to converted_images\iii\x
+2025-05-06 22:48:28 | INFO | Converting pdf_source\z\x.pdf to converted_images\iii\x
+2025-05-06 22:51:38 | INFO | Found 2 PDF files in pdf_source\z: [WindowsPath('pdf_source/z/aa.pdf'), WindowsPath('pdf_source/z/x.pdf')]
+2025-05-06 22:51:38 | INFO | Converting pdf_source\z\aa.pdf(path:pdf_source\z\aa.pdf) to converted_images\z\aa
+2025-05-06 22:51:38 | INFO | Converting pdf_source\z\aa.pdf to converted_images\z\aa
+2025-05-06 22:51:45 | INFO | Converting pdf_source\z\x.pdf(path:pdf_source\z\x.pdf) to converted_images\z\x
+2025-05-06 22:51:45 | INFO | Converting pdf_source\z\x.pdf to converted_images\z\x

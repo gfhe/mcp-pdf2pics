@@ -1,5 +1,6 @@
 import configparser
 import os
+import hashlib
 from pathlib import Path
 from typing import Any, List, Union
 
@@ -68,6 +69,7 @@ def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path]) -
     doc = fitz.open(pdf)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Converting {pdf} to {output_dir}")
     image_paths = []
     
     # 提升分辨率参数（原2倍提升改为4倍）
@@ -87,51 +89,48 @@ def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path]) -
 
 
 @mcp.tool()
-def convert_pdfs(pdfs: Union[str, List[str], Path], output_dir: str) -> dict:
+def convert_pdfs(pdfs_dir: str) -> dict[str, Any]:
     """
-    将多个 PDF 文件转换为与 PDF 同名的图片，并将这些图片保存到指定目录。
+    将多个 PDF 文件转换为图片。
     参数:
-        pdfs (Union[str, List[str], Path]): PDF 文件的路径或 PDF 文件路径列表。
-        output_dir (str): 输出目录的相对路径。
+        pdfs_dir str: PDF 文件夹路径
     返回:
         dict: 包含输出目录相对路径的字典。
     """
     result = {}
-    
-    # 统一输入处理
-    if isinstance(pdfs, (str, Path)):
-        pdfs = Path(pdfs)
-        if pdfs.is_dir():
-            # 扫描目录下的PDF文件
-            pdf_list = list(pdfs.glob('**/*.pdf'))
-        else:
-            pdf_list = [pdfs]
+    pdfs = PDF_ROOT / pdfs_dir
+    if pdfs.is_dir():
+        # 扫描目录下的PDF文件
+        pdf_list = list(pdfs.glob('**/*.pdf'))
+        logger.info(f"Found {len(pdf_list)} PDF files in {pdfs}: {pdf_list}")
+    else:
+        raise ValueError("输入路径不是有效的目录")
     
     # 添加异常处理
     try:
         for pdf in pdf_list:
-            pdf_path = PDF_ROOT / pdf
-            output_subdir = OUTPUT_ROOT / output_dir / Path(pdf).stem
-            result[str(pdf)] = convert_pdf_to_images(pdf_path, output_subdir)
+            pdf_path = pdf
+            output_subdir = OUTPUT_ROOT / pdfs_dir / Path(pdf).stem
+            logger.info(f"Converting {pdf}(path:{pdf_path}) to {output_subdir}")
+            result[str(pdf.relative_to(PDF_ROOT))] = convert_pdf_to_images(pdf_path, output_subdir)
     except Exception as e:
-        # 原代码中的日志调用（约55行）
-        logger.error(f"Conversion failed: {str(e)}")
-        
         # 改为loguru方式（自动包含上下文信息）
         logger.error(f"Conversion failed: {e}")
     return result
 
 @mcp.tool()
-def convert_pdf(pdf_name, output_path) -> dict[str, Any]:
+def convert_pdf(pdf_name: str) -> dict[str, Any]:
     """
     将单个 PDF 文件转换为与该 PDF 同名的图片，并将这些图片保存到指定目录。
     参数:
         pdf_name (str): 要转换的 PDF 文件的名称。
-        output_path (str): 输出目录的相对路径。
     返回:
         dict[str, Any]: 包含输出目录相对路径的字典。
     """
-    return convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path)
+    # 生成文件名的 MD5 哈希值
+    output_path = hashlib.md5(pdf_name.encode('utf-8')).hexdigest()
+    return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path)}
 
 if __name__ == "__main__":
-    mcp.run(transport='stdio')
+    # mcp.run(transport='stdio')
+    convert_pdfs('z')
