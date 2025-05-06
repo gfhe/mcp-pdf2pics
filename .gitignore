@@ -10,3 +10,4 @@ wheels/
 .venv
 pdf_source/
 converted_pdf/
+converted_images/

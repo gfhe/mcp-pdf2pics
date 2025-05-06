@@ -8,6 +8,8 @@ from PIL import Image
 import fitz 
 from loguru import logger
 
+from http_file import concurrent_upload, upload_file
+
 from mcp.server.fastmcp import FastMCP
 
 # Initialize FastMCP server
@@ -18,7 +20,8 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 PDF_ROOT = Path(config.get('PATHS', 'pdf_root', fallback='.'))
 OUTPUT_ROOT = Path(config.get('PATHS', 'output_root', fallback='output'))
-
+HTTP_FILE_SERVER_URL = config.get('HTTP_FILE_SERVER', 'endpoint', fallback='http://127.0.0.1')
+HTTP_FILE_UPLOAD_CONCURRENCY = int(config.get('HTTP_FILE_SERVER', 'concurrency', fallback='5'))
 
 # 添加配置验证逻辑
 def validate_config():
@@ -61,7 +64,7 @@ def convert_pdfs_to_images(input_dir: Union[str, Path], output_dir: Union[str, P
                 
     return pdf_to_image_map
 
-def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path]) -> List[str]:
+def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path], return_pic_url: bool = True) -> List[str]:
     """
     Convert a single PDF file to images with the same name as the PDF file
     and save the images to a specified directory.
@@ -79,21 +82,27 @@ def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path]) -
     for page_num in range(len(doc)):
         page = doc[page_num]
         pix = page.get_pixmap(matrix=mat)  # 使用更高清参数
-        output_path = output_dir / f"{page_num+1}.png"
+        output_path = output_dir / f"{pdf.stem}_{page_num+1}.png"
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
         img.save(output_path, format="PNG")
         image_paths.append(str(output_path.relative_to(OUTPUT_ROOT)))
 
     doc.close()
+
+    if return_pic_url:
+        # 上传图片到HTTP文件服务器
+        image_paths = [str(OUTPUT_ROOT / image) for image in image_paths]
+        image_paths = concurrent_upload(image_paths, HTTP_FILE_SERVER_URL, max_workers = HTTP_FILE_UPLOAD_CONCURRENCY)
     return image_paths
 
 
 @mcp.tool()
-def convert_pdfs(pdfs_dir: str) -> dict[str, Any]:
+def convert_pdfs(pdfs_dir: str, return_pic_url: bool = True) -> dict[str, Any]:
     """
     将多个 PDF 文件转换为图片。
     参数:
         pdfs_dir str: PDF 文件夹路径
+        return_pic_url bool: 是否上传图片到http 文件服务器，并返回图片的URL。默认为True。
     返回:
         dict: 包含输出目录相对路径的字典。
     """
@@ -119,17 +128,19 @@ def convert_pdfs(pdfs_dir: str) -> dict[str, Any]:
     return result
 
 @mcp.tool()
-def convert_pdf(pdf_name: str) -> dict[str, Any]:
+def convert_pdf(pdf_name: str, return_pic_url: bool = True) -> dict[str, Any]:
     """
     将单个 PDF 文件转换为与该 PDF 同名的图片，并将这些图片保存到指定目录。
     参数:
         pdf_name (str): 要转换的 PDF 文件的名称。
+        return_pic_url (bool): 是否上传图片到http 文件服务器，并返回图片的URL。默认为True。
     返回:
         dict[str, Any]: 包含输出目录相对路径的字典。
     """
     # 生成文件名的 MD5 哈希值
     output_path = hashlib.md5(pdf_name.encode('utf-8')).hexdigest()
-    return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path)}
+    return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path, return_pic_url)}
+
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')
