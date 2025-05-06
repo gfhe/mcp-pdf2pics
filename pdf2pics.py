@@ -132,5 +132,4 @@ def convert_pdf(pdf_name: str) -> dict[str, Any]:
     return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path)}
 
 if __name__ == "__main__":
-    # mcp.run(transport='stdio')
-    convert_pdfs('z')
+    mcp.run(transport='stdio')
