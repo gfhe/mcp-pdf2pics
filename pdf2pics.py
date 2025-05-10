@@ -1,6 +1,7 @@
 import configparser
-import os
+import re
 import hashlib
+import shutil
 from pathlib import Path
 from typing import Any, List, Union
 
@@ -41,33 +42,9 @@ logger.add(
     encoding='utf-8'
 )
 
-def convert_pdfs_to_images(input_dir: Union[str, Path], output_dir: Union[str, Path], pages: List[int] = None) -> dict[str, Any]:
-    """
-    Convert all PDF files in a directory (including subdirectories) to images
-    while preserving relative paths.
-    """
-    input_dir = Path(input_dir)
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    pdf_to_image_map = {}
-
-    for root, _, files in os.walk(input_dir):
-        for file in files:
-            if file.lower().endswith(".pdf"):
-                pdf_path = Path(root) / file
-                relative_path = pdf_path.relative_to(input_dir)
-                output_subdir = output_dir / relative_path.parent / pdf_path.stem
-                output_subdir.mkdir(parents=True, exist_ok=True)
-
-                image_paths = convert_pdf_to_images(pdf_path, output_subdir, pages)
-                pdf_to_image_map[str(relative_path)] = image_paths
-                
-    return pdf_to_image_map
-
 def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path], return_pic_url: bool = True) -> List[str]:
     """
-    Convert a single PDF file to images with the same name as the PDF file
-    and save the images to a specified directory.
+    将单个 PDF 文件转换为与该 PDF 文件同名的图片，并将这些图片保存到指定目录。
     """
     doc = fitz.open(pdf)
     output_dir = Path(output_dir)
@@ -82,7 +59,7 @@ def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path], r
     for page_num in range(len(doc)):
         page = doc[page_num]
         pix = page.get_pixmap(matrix=mat)  # 使用更高清参数
-        output_path = output_dir / f"{pdf.stem}_{page_num+1}.png"
+        output_path = output_dir / f"{pdf.stem}-{page_num+1}.png"
         img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
         img.save(output_path, format="PNG")
         image_paths.append(str(output_path.relative_to(OUTPUT_ROOT)))
@@ -91,27 +68,34 @@ def convert_pdf_to_images(pdf: Union[str, Path], output_dir: Union[str, Path], r
 
     if return_pic_url:
         # 上传图片到HTTP文件服务器
-        image_paths = [str(OUTPUT_ROOT / image) for image in image_paths]
-        image_paths = concurrent_upload(image_paths, HTTP_FILE_SERVER_URL, max_workers = HTTP_FILE_UPLOAD_CONCURRENCY)
+        upload_paths = []
+        for image in image_paths:
+            original_file = OUTPUT_ROOT / image
+            upload_file = OUTPUT_ROOT / re.sub(r'[\\/]', '_', image)
+            logger.info(f"Preparing {original_file} to {upload_file}")
+            shutil.move(original_file, upload_file)
+            upload_paths.append(str(upload_file))
+        logger.info(f"Uploading {upload_paths} images to {HTTP_FILE_SERVER_URL}")
+        image_paths = concurrent_upload(upload_paths, HTTP_FILE_SERVER_URL, max_workers = HTTP_FILE_UPLOAD_CONCURRENCY)
     return image_paths
 
 
 @mcp.tool()
 def convert_pdfs(pdfs_dir: str, return_pic_url: bool = True) -> dict[str, Any]:
     """
-    将多个 PDF 文件转换为图片。
+    将文件夹下（包括子文件夹）的所有 PDF 文件转换为图片。
     参数:
-        pdfs_dir str: PDF 文件夹路径
+        pdfs_dir str: PDF 文件夹路径，不包含子文件下的文件
         return_pic_url bool: 是否上传图片到http 文件服务器，并返回图片的URL。默认为True。
     返回:
-        dict: 包含输出目录相对路径的字典。
+        dict: 包含输出目录相对路径的字典。其中上传后，文件名会转为`相对路径_文件名-页码.png`的格式。例如，路径为`a/b/c.pdf`，则会生成`/a_b_c-1.png`、`/a_b_c-2.png`等文件。
     """
     result = {}
     pdfs = PDF_ROOT / pdfs_dir
     if pdfs.is_dir():
         # 扫描目录下的PDF文件
         pdf_list = list(pdfs.glob('**/*.pdf'))
-        logger.info(f"Found {len(pdf_list)} PDF files in {pdfs}: {pdf_list}")
+        logger.info(f"Found {len(pdf_list)} PDF files in {pdfs.absolute()}: {pdf_list}")
     else:
         raise ValueError("输入路径不是有效的目录")
     
@@ -119,7 +103,7 @@ def convert_pdfs(pdfs_dir: str, return_pic_url: bool = True) -> dict[str, Any]:
     try:
         for pdf in pdf_list:
             pdf_path = pdf
-            output_subdir = OUTPUT_ROOT / pdfs_dir / Path(pdf).stem
+            output_subdir = OUTPUT_ROOT / pdf.relative_to(PDF_ROOT).parent
             logger.info(f"Converting {pdf}(path:{pdf_path}) to {output_subdir}")
             result[str(pdf.relative_to(PDF_ROOT))] = convert_pdf_to_images(pdf_path, output_subdir)
     except Exception as e:
@@ -137,10 +121,10 @@ def convert_pdf(pdf_name: str, return_pic_url: bool = True) -> dict[str, Any]:
     返回:
         dict[str, Any]: 包含输出目录相对路径的字典。
     """
-    # 生成文件名的 MD5 哈希值
-    output_path = hashlib.md5(pdf_name.encode('utf-8')).hexdigest()
-    return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT / output_path, return_pic_url)}
+    return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT, return_pic_url)}
 
 
 if __name__ == "__main__":
-    mcp.run(transport='stdio')
+    # mcp.run(transport='stdio')
+    print(convert_pdf('x.pdf'))
+    # print(convert_pdfs('.', return_pic_url=True))
