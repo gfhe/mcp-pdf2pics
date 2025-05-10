@@ -123,8 +123,21 @@ def convert_pdf(pdf_name: str, return_pic_url: bool = True) -> dict[str, Any]:
     """
     return {pdf_name: convert_pdf_to_images(PDF_ROOT / pdf_name, OUTPUT_ROOT, return_pic_url)}
 
+def format_output(data: Union[str, dict[str, Any]]) -> str:
+    """
+    格式化输出 JSON 数据, 将文件->图片的映射关系 格式化为 [{文件名: [图片URL, 图片URL, ...]}]
+    参数:
+        json_data (dict[str, Any]): 要格式化的 JSON 数据。
+    返回:
+        str: 格式化后的 JSON 字符串。
+    """
+    if isinstance(data, str):
+        data = json.loads(data)
+    d = [ {"doc": k, "pics": v} for k,v  in data.items()]
+    return json.dumps(r, ensure_ascii=False, indent=2)
+
 
 if __name__ == "__main__":
-    # mcp.run(transport='stdio')
-    print(convert_pdf('x.pdf'))
+    mcp.run(transport='stdio')
+    # print(convert_pdf('x.pdf'))
     # print(convert_pdfs('.', return_pic_url=True))
