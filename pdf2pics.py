@@ -105,7 +105,7 @@ def convert_pdfs(pdfs_dir: str, return_pic_url: bool = True) -> dict[str, Any]:
             pdf_path = pdf
             output_subdir = OUTPUT_ROOT / pdf.relative_to(PDF_ROOT).parent
             logger.info(f"Converting {pdf}(path:{pdf_path}) to {output_subdir}")
-            result[str(pdf.relative_to(PDF_ROOT))] = convert_pdf_to_images(pdf_path, output_subdir)
+            result[str(pdf.relative_to(PDF_ROOT))] = convert_pdf_to_images(pdf_path, output_subdir, return_pic_url)
     except Exception as e:
         # 改为loguru方式（自动包含上下文信息）
         logger.error(f"Conversion failed: {e}")
